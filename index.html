@@ -98,7 +98,7 @@
 
     const series = [
       { name: '资产', color: '#4f6bed', data: assets },
-      { name: '备用金', color: '#13a38b', data: reserves }
+      { name: '备用金', color: '#13a38b', data: reserves, listName: '备用金(资产-开支)' }
     ];
     const timestamp = date => Date.parse(date + 'T00:00:00Z');
     const money = value => value.toLocaleString('zh-CN');
@@ -110,8 +110,9 @@
     const tooltip = document.getElementById('tooltip');
     document.getElementById('date-range').textContent = dates.length ? `${dates[0]} — ${dates.at(-1)} · ${all.length} 条记录` : '暂无记录';
     document.getElementById('summary').innerHTML = series.map(s => {
+	  const title = s.listName || s.name;
       const rows = [...s.data].reverse().map(d => `<tr><td>${d.date}</td><td>${money(d.amount)}</td></tr>`).join('');
-      return `<article class="stat"><div class="stat-title"><i class="dot" style="--color:${s.color}"></i>${s.name}列表<span class="record-count">${s.data.length} 条记录</span></div>${s.data.length ? `<table class="records" aria-label="${s.name}历史记录"><thead><tr><th scope="col">日期（最新在前）</th><th scope="col">金额（元）</th></tr></thead><tbody>${rows}</tbody></table>` : '<p class="empty">暂无记录</p>'}</article>`;
+      return `<article class="stat"><div class="stat-title"><i class="dot" style="--color:${s.color}"></i>${title}列表<span class="record-count">${s.data.length} 条记录</span></div>${s.data.length ? `<table class="records" aria-label="${title}历史记录"><thead><tr><th scope="col">日期（最新在前）</th><th scope="col">金额（元）</th></tr></thead><tbody>${rows}</tbody></table>` : '<p class="empty">暂无记录</p>'}</article>`;
     }).join('');
 
     function element(tag, attrs, parent = svg) {
