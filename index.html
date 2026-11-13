@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>资产与备用金 · 趋势记录</title>
+  <style>
+    :root { color-scheme: light; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; color: #1e293b; background: #f4f6fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { max-width: 1200px; margin: 0 auto; padding: 56px 28px 32px; }
+    .eyebrow { color: #64748b; font-size: 12px; letter-spacing: 3px; margin-bottom: 12px; }
+    h1 { margin: 0; font-size: clamp(26px, 4vw, 36px); font-weight: 650; letter-spacing: -1px; }
+    .subtitle { color: #64748b; font-size: 14px; line-height: 1.8; margin: 12px 0 28px; }
+    .summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-bottom: 24px; }
+    .stat { background: white; padding: 24px; border: 1px solid #e5eaf1; border-radius: 16px; }
+    .stat-title { display: flex; align-items: center; gap: 9px; font-size: 14px; color: #64748b; }
+    .dot { width: 9px; height: 9px; background: var(--color); border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .value { font-size: clamp(25px, 4vw, 34px); font-weight: 650; margin: 14px 0 8px; font-variant-numeric: tabular-nums; }
+    .value small { font-size: 14px; color: #94a3b8; font-weight: 400; margin-left: 8px; }
+    .stat-note { color: #64748b; font-size: 12px; line-height: 1.8; }
+    .panel { background: white; border: 1px solid #e5eaf1; border-radius: 18px; padding: 28px 28px 16px; box-shadow: 0 8px 30px #1e293b04; }
+    .panel-head { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+    h2 { font-size: 18px; font-weight: 600; margin: 0; }
+    .legend { display: flex; gap: 20px; color: #475569; font-size: 13px; }
+    .legend span { display: flex; gap: 8px; align-items: center; }
+    .chart { position: relative; margin-top: 18px; }
+    svg { width: 100%; height: 430px; display: block; overflow: visible; touch-action: pan-y; }
+    svg text { font-family: inherit; }
+    .tooltip { position: absolute; pointer-events: none; background: #172333; color: white; border-radius: 10px; padding: 13px 16px; font-size: 13px; box-shadow: 0 6px 24px #0f172a25; min-width: 174px; z-index: 2; }
+    .tooltip[hidden] { display: none; }
+    .tooltip time { display: block; color: #bac5d4; font-size: 12px; margin-bottom: 10px; }
+    .tooltip-row { display: flex; align-items: center; gap: 8px; margin-top: 7px; white-space: nowrap; }
+    .tooltip-row strong { margin-left: auto; padding-left: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+    .footnote { border-top: 1px solid #eef2f6; padding-top: 15px; color: #94a3b8; font-size: 12px; line-height: 1.8; }
+    footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 24px; }
+    @media (max-width: 600px) {
+      main { padding: 28px 14px 24px; }
+      .summary { gap: 10px; }
+      .stat { padding: 18px 14px; }
+      .value { font-size: 23px; }
+      .value small { margin-left: 3px; font-size: 12px; }
+      .panel { padding: 20px 12px 14px; }
+      svg { height: 360px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">FINANCIAL OVERVIEW</div>
+    <h1>资产与备用金</h1>
+    <p class="subtitle">记录每一次积累，看见资金的变化。<br><span id="date-range"></span></p>
+    <section class="summary" id="summary" aria-label="最新金额"></section>
+    <section class="panel" aria-label="资产与备用金趋势图">
+      <div class="panel-head">
+        <h2>金额走势</h2>
+        <div class="legend"><span><i class="dot" style="--color:#4f6bed"></i>资产</span><span><i class="dot" style="--color:#13a38b"></i>备用金</span></div>
+      </div>
+      <div class="chart" id="chart">
+        <svg id="plot" role="img" aria-labelledby="chart-title chart-description"></svg>
+        <div class="tooltip" id="tooltip" hidden></div>
+      </div>
+      <div class="footnote">金额单位：人民币元，纵轴以万元显示。将鼠标移至数据点或轻触图表可查看具体金额；键盘 Tab 可选中数据点。备用金从首条记录日期开始展示。</div>
+    </section>
+    <footer>每一笔记录，都是积累的足迹。</footer>
+  </main>
+  <script>
+    // ===== 数据维护区：以后只需修改下面两组数据，刷新网页即可。 =====
+    // 日期格式为 YYYY-MM-DD，金额单位为人民币元；可直接追加记录，日期会自动排序。
+    const assets = [
+      { date: '2025-10-20', amount: 2965884 },
+      { date: '2025-11-10', amount: 3013873 },
+      { date: '2025-12-10', amount: 3065714 },
+      { date: '2026-01-12', amount: 3121349 },
+      { date: '2026-02-10', amount: 3181211 },
+      { date: '2026-03-11', amount: 3223068 },
+      { date: '2026-04-10', amount: 3275387 },
+      { date: '2026-05-11', amount: 3329746 },
+      { date: '2026-06-10', amount: 3384019 },
+      { date: '2026-07-10', amount: 3440892 },
+      { date: '2026-08-10', amount: 3485952 },
+      { date: '2026-09-12', amount: 3528435 },
+      { date: '2026-10-10', amount: 3576559 },
+      { date: '2026-11-09', amount: 3580672 }
+    ];
+    const reserves = [
+      { date: '2026-11-09', amount: 2579477 }
+    ];
+    // ===== 数据维护区结束；下方负责绘图，无需修改。 =====
+
+    const series = [
+      { name: '资产', color: '#4f6bed', data: assets },
+      { name: '备用金', color: '#13a38b', data: reserves }
+    ];
+    const timestamp = date => Date.parse(date + 'T00:00:00Z');
+    const money = value => value.toLocaleString('zh-CN');
+    series.forEach(s => s.data.sort((a, b) => timestamp(a.date) - timestamp(b.date)));
+    const all = series.flatMap(s => s.data);
+    const dates = [...new Set(all.map(d => d.date))].sort();
+    const chart = document.getElementById('chart');
+    const svg = document.getElementById('plot');
+    const tooltip = document.getElementById('tooltip');
+    document.getElementById('date-range').textContent = dates.length ? `${dates[0]} — ${dates.at(-1)} · ${all.length} 条记录` : '暂无记录';
+    document.getElementById('summary').innerHTML = series.map(s => {
+      const latest = s.data.at(-1);
+      const previous = s.data.at(-2);
+      const delta = previous && latest.amount - previous.amount;
+      return `<article class="stat"><div class="stat-title"><i class="dot" style="--color:${s.color}"></i>最新${s.name}</div><div class="value">${latest ? money(latest.amount) : '—'}<small>元</small></div><div class="stat-note">${latest ? latest.date : '暂无记录'}${previous ? `<br>较上次 ${delta >= 0 ? '+' : '−'}${money(Math.abs(delta))} 元` : ''}</div></article>`;
+    }).join('');
+
+    function element(tag, attrs, parent = svg) {
+      const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      parent.appendChild(node);
+      return node;
+    }
+    function label(value, x, y, attrs = {}) {
+      element('text', { x, y, fill: '#94a3b8', 'font-size': 11, ...attrs }).textContent = value;
+    }
+    function draw() {
+      tooltip.hidden = true;
+      svg.replaceChildren();
+      const width = chart.clientWidth;
+      const height = svg.clientHeight;
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      element('title', { id: 'chart-title' }).textContent = '资产与备用金金额走势图';
+      element('desc', { id: 'chart-description' }).textContent = '横轴为日期，纵轴为人民币金额。' + series.map(s => s.name + '：' + s.data.map(d => `${d.date}，${money(d.amount)}元`).join('；')).join('。');
+      if (!all.length) return;
+      const margin = { left: width < 500 ? 48 : 60, right: 22, top: 32, bottom: 66 };
+      const innerWidth = width - margin.left - margin.right;
+      const innerHeight = height - margin.top - margin.bottom;
+      const first = timestamp(dates[0]), last = timestamp(dates.at(-1));
+      const maximum = Math.max(...all.map(d => d.amount), 1);
+      const roughStep = maximum / 4;
+      const power = 10 ** Math.floor(Math.log10(roughStep));
+      const step = [1, 2, 2.5, 5, 10].map(n => n * power).find(n => n >= roughStep);
+      const ceiling = Math.ceil(maximum / step) * step;
+      const x = date => margin.left + (last === first ? innerWidth / 2 : (timestamp(date) - first) / (last - first) * innerWidth);
+      const y = amount => margin.top + innerHeight * (1 - amount / ceiling);
+      label('金额（万元）', margin.left, 15);
+      for (let value = 0; value <= ceiling + step / 100; value += step) {
+        element('line', { x1: margin.left, x2: width - margin.right, y1: y(value), y2: y(value), stroke: '#edf1f6', 'stroke-dasharray': value === 0 ? 'none' : '4 5' });
+        label(Number((value / 10000).toFixed(4)).toLocaleString('zh-CN'), margin.left - 12, y(value) + 4, { 'text-anchor': 'end' });
+      }
+      const tickCount = Math.max(2, Math.floor(innerWidth / 105));
+      const tickDates = dates.filter((date, i) => i === 0 || i === dates.length - 1 || (i % Math.max(1, Math.ceil((dates.length - 1) / (tickCount - 1))) === 0 && x(dates.at(-1)) - x(date) > 90));
+      tickDates.forEach(date => label(date, x(date), height - margin.bottom + 27, { 'text-anchor': date === dates[0] ? 'start' : date === dates.at(-1) ? 'end' : 'middle' }));
+      label('日期', width - margin.right, height - 9, { 'text-anchor': 'end' });
+      const guide = element('line', { x1: 0, x2: 0, y1: margin.top, y2: height - margin.bottom, stroke: '#aebbcf', 'stroke-dasharray': '4 4', visibility: 'hidden' });
+      function hide() { tooltip.hidden = true; guide.setAttribute('visibility', 'hidden'); }
+      function show(date) {
+        guide.setAttribute('x1', x(date)); guide.setAttribute('x2', x(date)); guide.setAttribute('visibility', 'visible');
+        const matches = series.map(s => ({ ...s, point: s.data.find(d => d.date === date) })).filter(s => s.point);
+        tooltip.innerHTML = `<time>${date}</time>` + matches.map(s => `<div class="tooltip-row"><i class="dot" style="--color:${s.color}"></i>${s.name}<strong>${money(s.point.amount)} 元</strong></div>`).join('');
+        tooltip.hidden = false;
+        tooltip.style.left = Math.max(0, Math.min(x(date) + 16, width - tooltip.offsetWidth)) + 'px';
+        tooltip.style.top = Math.max(20, Math.min(...matches.map(s => y(s.point.amount))) - tooltip.offsetHeight - 16) + 'px';
+      }
+      series.forEach(s => {
+        element('path', { d: s.data.map((d, i) => `${i ? 'L' : 'M'} ${x(d.date)} ${y(d.amount)}`).join(' '), fill: 'none', stroke: s.color, 'stroke-width': 3, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' });
+        s.data.forEach(d => {
+          element('circle', { cx: x(d.date), cy: y(d.amount), r: 4.5, fill: 'white', stroke: s.color, 'stroke-width': 2.5 });
+          const hit = element('circle', { cx: x(d.date), cy: y(d.amount), r: 11, fill: 'transparent', tabindex: 0, role: 'img', 'aria-label': `${s.name}，${d.date}，${money(d.amount)}元`, style: 'cursor:crosshair' });
+          hit.addEventListener('focus', () => show(d.date));
+          hit.addEventListener('blur', hide);
+        });
+      });
+      svg.onpointermove = event => {
+        const bounds = svg.getBoundingClientRect();
+        const localX = event.clientX - bounds.left;
+        const localY = event.clientY - bounds.top;
+        if (localX < margin.left || localX > width - margin.right || localY < margin.top || localY > height - margin.bottom) return hide();
+        const nearest = dates.reduce((a, b) => Math.abs(x(a) - localX) < Math.abs(x(b) - localX) ? a : b);
+        show(nearest);
+      };
+      svg.onpointerleave = hide;
+      svg.onkeydown = event => { if (event.key === 'Escape') hide(); };
+    }
+    new ResizeObserver(draw).observe(chart);
+    draw();
+  </script>
+</body>
+</html>
