@@ -65,10 +65,10 @@
         <div class="legend"><span><i class="dot" style="--color:#4f6bed"></i>资产</span><span><i class="dot" style="--color:#13a38b"></i>备用金</span></div>
       </div>
       <div class="chart" id="chart">
-        <svg id="plot" role="img" aria-labelledby="chart-title chart-description"></svg>
+        <svg id="plot" role="img" aria-label="资产与备用金金额走势图"></svg>
         <div class="tooltip" id="tooltip" hidden></div>
       </div>
-      <div class="footnote">金额单位：人民币元，纵轴以万元显示。将鼠标移至数据点或轻触图表可查看具体金额；键盘 Tab 可选中数据点。备用金从首条记录日期开始展示。</div>
+      <div class="footnote">金额单位：人民币元，纵轴以万元显示。将鼠标移至数据点或轻触图表可查看具体金额；键盘 Tab 可选中数据点。</div>
     </section>
   </main>
   <script>
@@ -129,8 +129,7 @@
       const width = chart.clientWidth;
       const height = svg.clientHeight;
       svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-      element('title', { id: 'chart-title' }).textContent = '资产与备用金金额走势图';
-      element('desc', { id: 'chart-description' }).textContent = '横轴为日期，纵轴为人民币金额。' + series.map(s => s.name + '：' + s.data.map(d => `${d.date}，${money(d.amount)}元`).join('；')).join('。');
+      // element('desc', { id: 'chart-description' }).textContent = '横轴为日期，纵轴为人民币金额。' + series.map(s => s.name + '：' + s.data.map(d => `${d.date}，${money(d.amount)}元`).join('；')).join('。');
       if (!all.length) return;
       const margin = { left: width < 500 ? 48 : 60, right: 22, top: 32, bottom: 66 };
       const innerWidth = width - margin.left - margin.right;
