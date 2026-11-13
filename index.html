@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-	<!-- Edge 模式通知 Windows Internet Explorer 以最高级别的可用模式显示内容 -->
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">  
+  <!-- Edge 模式通知 Windows Internet Explorer 以最高级别的可用模式显示内容 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">  
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>资产与备用金 · 趋势记录</title>
@@ -70,7 +70,6 @@
       </div>
       <div class="footnote">金额单位：人民币元，纵轴以万元显示。将鼠标移至数据点或轻触图表可查看具体金额；键盘 Tab 可选中数据点。备用金从首条记录日期开始展示。</div>
     </section>
-    <footer>每一笔记录，都是积累的足迹。</footer>
   </main>
   <script>
     // ===== 数据维护区：以后只需修改下面两组数据，刷新网页即可。 =====
@@ -108,7 +107,7 @@
     const chart = document.getElementById('chart');
     const svg = document.getElementById('plot');
     const tooltip = document.getElementById('tooltip');
-    document.getElementById('date-range').textContent = dates.length ? `${dates[0]} — ${dates.at(-1)} · ${all.length} 条记录` : '暂无记录';
+    document.getElementById('date-range').textContent = dates.length ? `${dates[0]} — ${dates.at(-1)}` : '暂无记录';
     document.getElementById('summary').innerHTML = series.map(s => {
 	  const title = s.listName || s.name;
       const rows = [...s.data].reverse().map(d => `<tr><td>${d.date}</td><td>${money(d.amount)}</td></tr>`).join('');
