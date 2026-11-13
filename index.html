@@ -161,7 +161,7 @@
 		  let diffHtml = '';
 		  if (assetPoint && reservePoint) {
 			const diff = assetPoint.point.amount - reservePoint.point.amount;
-			diffHtml = `<div class="tooltip-row" style="border-top:1px solid #334155; padding-top:8px; margin-top:10px;"><i class="dot" style="--color:#f59e0b"></i>开支<strong>${money(diff)} 元</strong></div>`;
+			diffHtml = `<div class="tooltip-row" style="border-top:1px solid #334155; padding-top:8px; margin-top:10px;"><i class="dot" style="--color:#f59e0b"></i>退休前开支<strong>${money(diff)} 元</strong></div>`;
 		  }
 		  tooltip.innerHTML = `<time>${date}</time>` + matches.map(s => `<div class="tooltip-row"><i class="dot" style="--color:${s.color}"></i>${s.name}<strong>${money(s.point.amount)} 元</strong></div>`).join('') + diffHtml;
 		  tooltip.hidden = false;
