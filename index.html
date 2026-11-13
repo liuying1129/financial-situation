@@ -16,13 +16,19 @@
     .eyebrow { color: #64748b; font-size: 12px; letter-spacing: 3px; margin-bottom: 12px; }
     h1 { margin: 0; font-size: clamp(26px, 4vw, 36px); font-weight: 650; letter-spacing: -1px; }
     .subtitle { color: #64748b; font-size: 14px; line-height: 1.8; margin: 12px 0 28px; }
-    .summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; margin-bottom: 24px; }
+    .summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 24px; align-items: start; }
     .stat { background: white; padding: 24px; border: 1px solid #e5eaf1; border-radius: 16px; }
     .stat-title { display: flex; align-items: center; gap: 9px; font-size: 14px; color: #64748b; }
     .dot { width: 9px; height: 9px; background: var(--color); border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .value { font-size: clamp(25px, 4vw, 34px); font-weight: 650; margin: 14px 0 8px; font-variant-numeric: tabular-nums; }
-    .value small { font-size: 14px; color: #94a3b8; font-weight: 400; margin-left: 8px; }
-    .stat-note { color: #64748b; font-size: 12px; line-height: 1.8; }
+    .record-count { margin-left: auto; font-size: 12px; color: #94a3b8; }
+    .records { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .records th { color: #94a3b8; font-size: 12px; font-weight: 400; text-align: left; }
+    .records th, .records td { padding: 11px 0; border-bottom: 1px solid #eef2f6; }
+    .records th:last-child, .records td:last-child { text-align: right; }
+    .records td:first-child { color: #64748b; }
+    .records tbody tr:first-child td { font-weight: 600; color: #1e293b; }
+    .records tbody tr:last-child td { border-bottom: 0; }
+    .empty { color: #94a3b8; font-size: 14px; }
     .panel { background: white; border: 1px solid #e5eaf1; border-radius: 18px; padding: 28px 28px 16px; box-shadow: 0 8px 30px #1e293b04; }
     .panel-head { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
     h2 { font-size: 18px; font-weight: 600; margin: 0; }
@@ -40,10 +46,8 @@
     footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 24px; }
     @media (max-width: 600px) {
       main { padding: 28px 14px 24px; }
-      .summary { gap: 10px; }
+      .summary { grid-template-columns: 1fr; gap: 10px; }
       .stat { padding: 18px 14px; }
-      .value { font-size: 23px; }
-      .value small { margin-left: 3px; font-size: 12px; }
       .panel { padding: 20px 12px 14px; }
       svg { height: 360px; }
     }
@@ -54,7 +58,7 @@
     <div class="eyebrow">FINANCIAL OVERVIEW</div>
     <h1>资产与备用金</h1>
     <p class="subtitle">记录每一次积累，看见资金的变化。<br><span id="date-range"></span></p>
-    <section class="summary" id="summary" aria-label="最新金额"></section>
+    <section class="summary" id="summary" aria-label="资产与备用金记录列表"></section>
     <section class="panel" aria-label="资产与备用金趋势图">
       <div class="panel-head">
         <h2>金额走势</h2>
@@ -106,10 +110,8 @@
     const tooltip = document.getElementById('tooltip');
     document.getElementById('date-range').textContent = dates.length ? `${dates[0]} — ${dates.at(-1)} · ${all.length} 条记录` : '暂无记录';
     document.getElementById('summary').innerHTML = series.map(s => {
-      const latest = s.data.at(-1);
-      const previous = s.data.at(-2);
-      const delta = previous && latest.amount - previous.amount;
-      return `<article class="stat"><div class="stat-title"><i class="dot" style="--color:${s.color}"></i>最新${s.name}</div><div class="value">${latest ? money(latest.amount) : '—'}<small>元</small></div><div class="stat-note">${latest ? latest.date : '暂无记录'}${previous ? `<br>较上次 ${delta >= 0 ? '+' : '−'}${money(Math.abs(delta))} 元` : ''}</div></article>`;
+      const rows = [...s.data].reverse().map(d => `<tr><td>${d.date}</td><td>${money(d.amount)}</td></tr>`).join('');
+      return `<article class="stat"><div class="stat-title"><i class="dot" style="--color:${s.color}"></i>${s.name}列表<span class="record-count">${s.data.length} 条记录</span></div>${s.data.length ? `<table class="records" aria-label="${s.name}历史记录"><thead><tr><th scope="col">日期（最新在前）</th><th scope="col">金额（元）</th></tr></thead><tbody>${rows}</tbody></table>` : '<p class="empty">暂无记录</p>'}</article>`;
     }).join('');
 
     function element(tag, attrs, parent = svg) {
